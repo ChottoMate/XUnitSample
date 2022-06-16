@@ -1,8 +1,8 @@
 class TestCase:
     def __init__(self, name):
         self.name = name
-    def run(self):
-        result = TestResult()
+    def run(self, result):
+        # result = TestResult()
         result.testStarted()
         self.setUp()
         try:
@@ -11,7 +11,7 @@ class TestCase:
         except:
             result.testFailed()
         self.tearDown()
-        return result
+        # return result
     def setUp(self):
         pass
     def tearDown(self):
@@ -34,7 +34,8 @@ class WasRun(TestCase):
         self.log = self.log + "tearDown "
 
 class TestCaseTest(TestCase):
-    # def setUp(self):
+    def setUp(self):
+        self.result = TestResult()
     #     self.test = WasRun("testMethod")
     # def testRunning(self):
         # test = WasRun("testMethod")
@@ -43,21 +44,42 @@ class TestCaseTest(TestCase):
         # assert (self.test.wasRun)
     def testTemplateMethod(self):
         test = WasRun("testMethod")
-        test.run()
+        # result = TestResult()
+        test.run(self.result)
         assert ("setUp testMethod tearDown " == test.log)
     def testResult(self):
         test = WasRun("testMethod")
-        result = test.run()
-        assert ("1 run, 0 failed" == result.summary())
+        # result = TestResult()
+        test.run(self.result)
+        assert ("1 run, 0 failed" == self.result.summary())
     def testFailedResult(self):
         test = WasRun("testBrokenMethod")
-        result = test.run()
-        assert("1 run, 1 failed" == result.summary())
+        # result = TestResult()
+        test.run(self.result)
+        assert("1 run, 1 failed" == self.result.summary())
     def testFailedResultFormatting(self):
-        result = TestResult()
-        result.testStarted()
-        result.testFailed()
-        assert ("1 run, 1 failed" == result.summary())
+        # result = TestResult()
+        self.result.testStarted()
+        self.result.testFailed()
+        assert ("1 run, 1 failed" == self.result.summary())
+    def testSuite(self):
+        suite = TestSuite()
+        suite.add(WasRun("testMethod"))
+        suite.add(WasRun("testBrokenMethod"))
+        # result = TestResult()
+        suite.run(self.result)
+        assert ("2 run, 1 failed" == self.result.summary())
+
+class TestSuite:
+    def __init__(self):
+        self.tests = []
+    def add(self, test):
+        self.tests.append(test)
+    def run(self, result):
+        # result = TestResult()
+        for test in self.tests:
+            test.run(result)
+        # return result
 
 class TestResult:
     def __init__(self):
@@ -71,7 +93,18 @@ class TestResult:
         return "%d run, %d failed" % (self.runCount, self.errorCount)
 
 # TestCaseTest("testRunning").run()
-print(TestCaseTest("testTemplateMethod").run().summary())
-print(TestCaseTest("testResult").run().summary())
-print(TestCaseTest("testFailedResult").run().summary())
-print(TestCaseTest("testFailedResultFormatting").run().summary())
+# print(TestCaseTest("testTemplateMethod").run().summary())
+# print(TestCaseTest("testResult").run().summary())
+# print(TestCaseTest("testFailedResult").run().summary())
+# print(TestCaseTest("testFailedResultFormatting").run().summary())
+# print(TestCaseTest("testSuite").run().summary())
+
+suite = TestSuite()
+suite.add(TestCaseTest("testTemplateMethod"))
+suite.add(TestCaseTest("testResult"))
+suite.add(TestCaseTest("testFailedResult"))
+suite.add(TestCaseTest("testFailedResultFormatting"))
+suite.add(TestCaseTest("testSuite"))
+result = TestResult()
+suite.run(result)
+print(result.summary())
